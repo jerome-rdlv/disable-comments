@@ -1,42 +1,38 @@
 <?php
 
-add_filter('upload_mimes', function ($mimes) {
-    $mimes['svg'] = 'image/svg+xml';
-    return $mimes;
+add_filter('comments_open', '__return_false');
+add_filter('pings_open', '__return_false');
+add_action('admin_menu', function () {
+    remove_menu_page('edit-comments.php');
+//    remove_submenu_page('options-general.php', 'options-discussion.php');
 });
-add_action('admin_enqueue_scripts', function () {
-    // Media Listing Fix
-    wp_add_inline_style( 'wp-admin', ".media .media-icon img[src$='.svg'] { width: auto; height: auto; }" );
-    // Featured Image Fix
-    wp_add_inline_style( 'wp-admin', "#postimagediv .inside img[src$='.svg'] { width: 100%; height: auto; }" );
+add_action('wp_before_admin_bar_render', function () {
+    /** @var $wp_admin_bar WP_Admin_Bar */
+    global $wp_admin_bar;
+    $wp_admin_bar->remove_menu('comments');
 });
-add_filter('wp_prepare_attachment_for_js', function ($response, $attachment, $meta) {
-    if( $response['mime'] == 'image/svg+xml' && empty( $response['sizes'] ) ) {
-        $svg_file_path = get_attached_file( $attachment->ID );
+add_action('admin_init', function () {
 
-        $svg = simplexml_load_file( $svg_file_path );
-        $attributes = $svg->attributes();
-
-        $response[ 'sizes' ] = array(
-            'full' => array(
-                'url' => $response[ 'url' ],
-                'width' => $attributes->width,
-                'height' => $attributes->height,
-                'orientation' => $attributes->width > $attributes->height ? 'landscape' : 'portrait'
-            )
-        );
+    // redirect if accessing comments page in admin
+    global $currentPage;
+    if (in_array($currentPage, array('edit-comments.php', 'options-discussion.php'))) {
+        wp_redirect(admin_url());
+        exit;
     }
 
-    return $response;
-}, 10, 3);
-add_filter('wp_check_filetype_and_ext', function ($data, $file, $filename, $mimes) {
-    if (get_bloginfo('version') < '4.7.3') {
-        $wp_filetype = wp_check_filetype($filename, $mimes);
-        $ext = $wp_filetype['ext'];
-        $type = $wp_filetype['type'];
-        $proper_filename = $data['proper_filename'];
-        return compact('ext', 'type', 'proper_filename');
-    }
-    return $data;
+    // remove comments metabox on dashboard
+    remove_meta_box('dashboard_recent_comments', 'dashboard', 'normal');
 
-}, 10, 4);
+    // disable on all post types
+    foreach (get_post_types() as $post_type) {
+        if (post_type_supports($post_type, 'comments')) {
+            remove_post_type_support($post_type, 'comments');
+            remove_post_type_support($post_type, 'trackbacks');
+        }
+    }
+});
+add_action('init', function () {
+    if (is_admin_bar_showing()) {
+        remove_action('admin_bar_menu', 'wp_admin_bar_comments_menu', 60);
+    }
+});
