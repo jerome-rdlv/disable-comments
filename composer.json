@@ -1,5 +1,5 @@
 {
-    "name": "wp-disable-comments",
+    "name": "disable-comments",
     "description": "Disable comments in admin UI.",
     "homepage": "https://rue-de-la-vieille.fr/",
     "type": "wordpress-muplugin",
