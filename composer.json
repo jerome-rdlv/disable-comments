@@ -1,9 +1,9 @@
 {
     "name": "disable-comments",
-    "description": "Disable comments in admin UI.",
-    "homepage": "https://rue-de-la-vieille.fr/",
+    "description": "WordPress plugin to disable comments in admin UI",
+    "homepage": "https://github.com/jerome-rdlv/disable-comments",
     "type": "wordpress-muplugin",
-    "license": "private",
+    "license": "MIT",
     "authors": [
 	{
 	    "name"    : "Jérôme Mulsant",
